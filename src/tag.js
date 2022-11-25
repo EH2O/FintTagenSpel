@@ -37,19 +37,24 @@ const enemy = add([
     })
     
     onKeyDown("d", () => {
+        if(player.pos.x < width()){
         player.move(SPEED, 0)
+        }
     })
-   
 
-if (player.pos.y > 0 || player.pos.y < height()) {
     onKeyDown("w", () => {
-        player.move(0, -SPEED)
+        if(player.pos.y > 0){
+            player.move(0, -SPEED)
+        }
     })
     
     onKeyDown("s", () => {
-        player.move(0, SPEED)
+        if(player.pos.y < height()){
+            player.move(0, SPEED)
+            }
+    
     })
-}
+
 
 
 
