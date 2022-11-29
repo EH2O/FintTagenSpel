@@ -6,14 +6,16 @@ kaboom({
     background: [ 255, 125, 0 ]
 });
 
-const hero = "https://media.giphy.com/media/3XUmDYg1EytjNtAu7u/giphy.gif";
+const hero = "/test/man.png";
 
 const villan = "/test/Pog.png";
-const SPEED = 900;
+const SPEED = 1000;
 const ENEMY_SPEED = 250;
 let time = 0;
 let timeA = 0;
 const BULLET_SPEED = 600;
+let enemyHP = 1000;
+const Length = width()/enemyHP;
 loadSprite("hero", hero)
 loadSprite("vil", villan, {
     sliceX: 4,
@@ -29,13 +31,17 @@ loadSprite("vil", villan, {
     } 
 })
 
+
+
+
+
 // Add player game object
 const player = add([
     sprite("hero"),
     pos((100, 100)),
     area(),
     origin("center"),
-    scale(0.1),
+    scale(3),
 ])
 
 
@@ -51,36 +57,49 @@ const enemy = add([
 ])
 enemy.play("move")
     onKeyDown("a", () => {
-        if(player.pos.x > 0){
+        if(player.pos.x > 24){
            player.move(-SPEED, 0)  
         }
   
     })
     
     onKeyDown("d", () => {
-        if(player.pos.x < width()){
+        if(player.pos.x < width()-24){
         player.move(SPEED, 0)
         }
     })
 
     onKeyDown("w", () => {
-        if(player.pos.y > 0){
+        if(player.pos.y > 67){
             player.move(0, -SPEED)
         }
     })
     
     onKeyDown("s", () => {
-        if(player.pos.y < height()){
+        if(player.pos.y < height() -40){
             player.move(0, SPEED)
             }
     
     })
 
 
-
+const healthbar =     add([
+    rect(Length*enemyHP, 14),
+    color(GREEN), 
+    pos(0,0),
+    "hp",
+    {
+        set(Health){
+            this.width = Length*enemyHP;
+        }
+    }
+])
 
 onUpdate(() => {
     if (!player.exists()) return
+    if (!enemy.exists()) return
+
+
 	const dir = player.pos.sub(enemy.pos).unit()
 	enemy.move(dir.scale(ENEMY_SPEED))  
     if(time == 20){
@@ -94,7 +113,9 @@ onUpdate(() => {
 			cleanup(),
 			origin("center"),
 			color(GREEN),
+            handleout(),
 			"bullet",
+            "WallB",
 		])
         time = 0;
     }
@@ -108,21 +129,67 @@ onUpdate(() => {
                 area(),
                 origin("center"),
                 color(GREEN),
+                handleout(),
                 "bullet",
+                "WallB",
             ])
         }
         timeA = 0;
     }
     timeA += 1;
    time += 1;
-
 })
 
-player.onCollide("enemy", () =>{
-    destroy(player)
-})
+
 player.onCollide("bullet", () =>{
     destroy(player)
 })
 
+enemy.onCollide("MyB", () =>{
+    enemyHP -= 10;
+    if(enemyHP <= 0){
+        destroy(enemy);
+    }
+    healthbar.set()
+})
+onClick(shot);
+function shot(){
+    if (!player.exists()) return
+    const Mpos = mousePos();
+    const dir2 = Mpos.sub(player.pos).unit()
+    add([
+        pos(player.pos),
+        rect(12,12),
+        area(),
+        handleout(),
+        color(BLUE),
+        move(dir2, 1000),
+        "MyB",
+        "WallB",
+        
+
+    ])
+}
+function handleout() {
+	return {
+		id: "handleout",
+		require: [ "pos" ],
+		update() {
+			const spos = this.screenPos()
+			if (
+				spos.x < 0 ||
+				spos.x > width() ||
+				spos.y < 0 ||
+				spos.y > height()
+			) {
+				// triggers a custom event when out
+				this.trigger("out")
+			}
+		},
+	}
+}
+
+on("out", "WallB", (m) => {
+	destroy(m)
+})
 
