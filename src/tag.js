@@ -1,7 +1,7 @@
 import kaboom from "kaboom";
 
 kaboom({
-    width: 1400,
+    width: 1500,
     height: 1000,
     background: [ 100, 125, 0 ]
 });
@@ -9,6 +9,7 @@ kaboom({
 const hero = "/test/man.png";
 const villan2 = "/test/skeleton.png";
 const villan = "/test/Pog.png";
+const bulletGraphPlace = "/test/bulletWS.png";
 const SPEED = 500;
 const ENEMY_SPEED = 250;
 let dmg = 10;
@@ -21,6 +22,30 @@ let Length = width()/enemyHP;
 let canShot = 1;
 
 loadSprite("hero", hero)
+loadSprite("BUG", bulletGraphPlace, {
+    sliceX: 5,
+
+    anims: {
+        "idle":{
+            from: 0,
+            to: 4,
+            speed: 4,
+            loop: true,
+        }
+    } 
+})
+loadSprite("HealthPack", "/test/healthUp.png", {
+    sliceX: 5,
+
+    anims: {
+        "idle":{
+            from: 0,
+            to: 4,
+            speed: 4,
+            loop: true,
+        }
+    } 
+})
 loadSprite("vil", villan, {
     sliceX: 4,
     width: 112,
@@ -50,16 +75,24 @@ loadSprite("vil2", villan2, {
 scene("start", () => {
     add([
         rect(250,100),
-        color(BLACK),
-        pos(center().sub(110, 110)),
+        color(WHITE),
+        pos(center()),
         area(),
         "StartButton",
+        text("start")
     ])
     add([
-        text("start"),
-        pos(center().sub(100, 100))
+        rect(250,100),
+        color(WHITE),
+        pos(center().sub(110, 110)),
+        area(),
+        "upgrade",
+        text("upgrades")
     ])
+
     onClick("StartButton", () => go("LevelSelector"))
+    
+    onClick("upgrade", () => go("Upgrade"))
     
 
 })
@@ -104,7 +137,7 @@ scene("LevelSelector", () => {
         pos(470, height()/2-170),
         scale(0.5)
     ])
-    onClick("Level2", () => go("lvl2"))
+    onClick("Level2", () => go("testing"))
 
     add([
         rect(300,100),
@@ -144,33 +177,9 @@ const player = add([
         "enemy",
         origin("center"),
         scale(5),
+        color(255, 100, 200)
     ])
-    enemy.play("move")
-        onKeyDown("a", () => {
-            if(player.pos.x > 24){
-               player.move(-SPEED, 0)  
-            }
-      
-        })
-        
-        onKeyDown("d", () => {
-            if(player.pos.x < width()-24){
-            player.move(SPEED, 0)
-            }
-        })
-    
-        onKeyDown("w", () => {
-            if(player.pos.y > 67){
-                player.move(0, -SPEED)
-            }
-        })
-        
-        onKeyDown("s", () => {
-            if(player.pos.y < height() -40){
-                player.move(0, SPEED)
-                }
-        
-        })
+    movePlayer(player);
 
     const healthbar =     add([
         rect(Length*enemyHP, 14),
@@ -266,31 +275,7 @@ scene("lvl2", () => {
             scale(5),
         ])
         enemy.play("move")
-            onKeyDown("a", () => {
-                if(player.pos.x > 24){
-                   player.move(-SPEED, 0)  
-                }
-          
-            })
-            
-            onKeyDown("d", () => {
-                if(player.pos.x < width()-24){
-                player.move(SPEED, 0)
-                }
-            })
-        
-            onKeyDown("w", () => {
-                if(player.pos.y > 67){
-                    player.move(0, -SPEED)
-                }
-            })
-            
-            onKeyDown("s", () => {
-                if(player.pos.y < height() -40){
-                    player.move(0, SPEED)
-                    }
-            
-            })
+       movePlayer(player);
     
         const healthbar =     add([
             rect(Length*enemyHP, 14),
@@ -359,10 +344,121 @@ scene("lvl2", () => {
 
 
 })
+scene("Upgrade", () => {
+
+    add ([
+        rect(300,300),
+        color(WHITE),
+        area(),
+        "MoreDMG",
+        pos(460,450),
+        origin("center"),
+        outline(10, BLACK)
+
+    ])
+    const bulletGraph = add([
+        
+        sprite("BUG"),
+        pos((700, 500)),
+        origin("center"),
+        scale(10),
+        state["idle"],
+
+    ])
+    add([
+        rect(300,100),
+        color(255,0,255),
+        pos(center().sub(150, -300)),
+        area(),
+        "Back",
+        text("Back")
+    ])
+    onClick("Back", () => go("start"))
+  
+
+    const healthUp = add([
+        sprite("HealthPack"),
+        pos(800, 450),
+        origin("center"),
+        scale(10),
+        state["idle"],
+        "IncreaseHealth"
+    ])
+    onClick("MoreDMG", () => dmg += 10)
+    healthUp.play("idle")
+    bulletGraph.play("idle")
+
+
+})
+
+scene("testing", () => {
+    let player = add([
+        pos(600, 600),
+        color(BLUE),
+        rect(20,20)
+        
+    ])
+   movePlayer(player)
+
+    makeEne(10,800);
+ 
+    onUpdate("redBlock", (m) => {
+        
+        const dir = player.pos.sub(m.pos).sub(rand(vec2(70))).unit()
+        m.move(dir.scale(300));
+    })
+  
+
+})
 
 
 
+function movePlayer(player){
 
+
+    onKeyDown("a", () => {
+        if(player.pos.x > 24){
+           player.move(-SPEED, 0)  
+        }
+  
+    })
+    
+    onKeyDown("d", () => {
+        if(player.pos.x < width()-24){
+        player.move(SPEED, 0)
+        }
+    })
+
+    onKeyDown("w", () => {
+        if(player.pos.y > 67){
+            player.move(0, -SPEED)
+        }
+    })
+    
+    onKeyDown("s", () => {
+        if(player.pos.y < height() -40){
+            player.move(0, SPEED)
+            }
+    
+    })
+}
+//MAKE ENEMIES ------------------------------------------------------------------------------
+function makeEne(amount, highPos){
+    for(let loops = 0; loops < amount; loops++){
+        
+        add([
+      
+            pos(rand(vec2(highPos))),
+            rect(12,12),
+            color(RED),
+            area(),
+            solid({scale : 0.5}),
+            "redBlock",
+        ]) 
+    }
+
+}
+//End of Function -----------------------------------------------------------------------------
 
 //Needs the angle and a enemy pos
 function circleAt(x, Position){
