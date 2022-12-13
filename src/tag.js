@@ -20,6 +20,7 @@ let enemyHP = 1000;
 let enemyHPC = enemyHP;
 let Length = width()/enemyHP;
 let canShot = 1;
+let cash = 0;
 
 loadSprite("hero", hero)
 loadSprite("BUG", bulletGraphPlace, {
@@ -76,7 +77,7 @@ scene("start", () => {
     add([
         rect(250,100),
         color(WHITE),
-        pos(center()),
+        pos(center().sub(125,100)),
         area(),
         "StartButton",
         text("start")
@@ -84,7 +85,7 @@ scene("start", () => {
     add([
         rect(250,100),
         color(WHITE),
-        pos(center().sub(110, 110)),
+        pos(center().sub(125, 0)),
         area(),
         "upgrade",
         text("upgrades")
@@ -137,17 +138,9 @@ scene("LevelSelector", () => {
         pos(470, height()/2-170),
         scale(0.5)
     ])
-    onClick("Level2", () => go("testing"))
+    onClick("Level2", () => go("lvl2"))
 
-    add([
-        rect(300,100),
-        color(255,0,255),
-        pos(center().sub(150, -300)),
-        area(),
-        "Back",
-        text("Back")
-    ])
-    onClick("Back", () => go("start"))
+    makeBackButton();
   
 
 
@@ -177,11 +170,11 @@ const player = add([
         "enemy",
         origin("center"),
         scale(5),
-        color(255, 100, 200)
     ])
+    enemy.play("move")
     movePlayer(player);
 
-    const healthbar =     add([
+    const healthbar =  add([
         rect(Length*enemyHP, 14),
         color(GREEN), 
         pos(0,0),
@@ -212,16 +205,21 @@ const player = add([
         timeA += 1;
         time += 1;
     })
+
     
     
     player.onCollide("bullet", () =>{
-        destroy(player)
+        destroy(player);
+        makeBackButton;
+        cash += 1000/enemyHP;
     })
     
     enemy.onCollide("MyB", () =>{
         enemyHP -= dmg;
         if(enemyHP <= 0){
             destroy(enemy);
+            cash += 2000;
+            makeBackButton;
         }
         healthbar.set()
     })
@@ -290,23 +288,7 @@ scene("lvl2", () => {
         ])
         onClick(shot);
         onMouseDown(shot);
-        function shot(){
-            if (!player.exists() || !canShot == 1) return
-            const Mpos = mousePos();
-            const dir2 = Mpos.sub(player.pos).unit()
-            add([
-                pos(player.pos),
-                rect(12,12),
-                area(),
-                handleout(),
-                color(BLUE),
-                move(dir2, 1000),
-                "MyB",
-                "WallB",
-                ])
-            canShot = 0
-            wait(0.25, () => canShot = 1)
-        }
+
 
       // ----------------------------------------------------------------------- DO STUFF      
     onUpdate(() => {
@@ -320,7 +302,7 @@ scene("lvl2", () => {
             enemyNS(enemy.pos, dir);
             time = 0;
         }
-        if(timeA >= 50 && enemyHP < enemyHPC/3){
+        if(timeA >= 30 && enemyHP < enemyHPC){
             fireworkAT(20, enemy.pos, dir)
             timeA = 0;
         }
@@ -340,7 +322,26 @@ scene("lvl2", () => {
         healthbar.set()
     })
 
+    cashDisplay(cash);
 
+    function shot(){
+        if (!player.exists() || !canShot == 1) return
+        const Mpos = mousePos();
+        const dir2 = Mpos.sub(player.pos).unit()
+        add([
+            pos(player.pos),
+            rect(12,12),
+            area(),
+            handleout(),
+            color(BLUE),
+            move(dir2, 1000),
+            "MyB",
+            "WallB",
+            ])
+        canShot = 0
+        wait(0.25, () => canShot = 1)
+    }
+    
 
 
 })
@@ -365,15 +366,7 @@ scene("Upgrade", () => {
         state["idle"],
 
     ])
-    add([
-        rect(300,100),
-        color(255,0,255),
-        pos(center().sub(150, -300)),
-        area(),
-        "Back",
-        text("Back")
-    ])
-    onClick("Back", () => go("start"))
+    makeBackButton();
   
 
     const healthUp = add([
@@ -539,5 +532,24 @@ function handleout() {
 on("out", "WallB", (m) => {
 	destroy(m)
 })
+
+
+function cashDisplay(cash){
+    add ([
+        text("Cash: " + cash),
+        pos(0, 10),
+    ])
+}
+function makeBackButton(){
+    add([
+        rect(300,100),
+        color(255,0,255),
+        pos(center().sub(150, -300)),
+        area(),
+        "Back",
+        text("Back")
+    ])
+    onClick("Back", () => go("start"))
+}
 
 go("start")
