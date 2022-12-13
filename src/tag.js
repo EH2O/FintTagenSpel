@@ -155,7 +155,7 @@ scene("lvl1", () => {
     enemyHP = 1000;
     canShot = 1;
     enemyHPC = 1000;
-    
+    length = width()/enemyHPC
 // Add player game object
 const player = add([
     sprite("hero"),
