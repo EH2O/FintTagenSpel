@@ -99,7 +99,7 @@ scene("start", () => {
 })
 scene("LevelSelector", () => {
     add([
-        text("Press the enemie you want to fight"),
+        text("Press the enemy you want to fight"),
         pos(20,0),
         scale(0.9)
     ])
@@ -210,7 +210,7 @@ const player = add([
     
     player.onCollide("bullet", () =>{
         destroy(player);
-        makeBackButton;
+        makeBackButton();
         cash += 1000/enemyHP;
     })
     
@@ -219,7 +219,7 @@ const player = add([
         if(enemyHP <= 0){
             destroy(enemy);
             cash += 2000;
-            makeBackButton;
+            makeBackButton();
         }
         healthbar.set()
     })
@@ -312,12 +312,15 @@ scene("lvl2", () => {
         
     player.onCollide("bullet", () =>{
         destroy(player)
+
+        makeBackButton();
     })
     
     enemy.onCollide("MyB", () =>{
         enemyHP -= dmg;
         if(enemyHP <= 0){
             destroy(enemy);
+            makeBackButton();
         }
         healthbar.set()
     })
