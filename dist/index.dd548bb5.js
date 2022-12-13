@@ -559,6 +559,7 @@ let enemyHPC = enemyHP;
 let Length = width() / enemyHP;
 let canShot = 1;
 let cash = 0;
+let priceDMG = 5;
 loadSprite("hero", hero);
 loadSprite("BUG", bulletGraphPlace, {
     sliceX: 5,
@@ -606,6 +607,7 @@ loadSprite("vil2", villan2, {
     }
 });
 scene("start", ()=>{
+    cashDisplay(cash);
     add([
         rect(250, 100),
         color(WHITE),
@@ -627,7 +629,7 @@ scene("start", ()=>{
 });
 scene("LevelSelector", ()=>{
     add([
-        text("Press the enemie you want to fight"),
+        text("Press the enemy you want to fight"),
         pos(20, 0),
         scale(0.9)
     ]);
@@ -670,6 +672,10 @@ scene("LevelSelector", ()=>{
     makeBackButton();
 });
 scene("lvl1", ()=>{
+    cashDisplay(cash);
+    enemyHP = 1000;
+    canShot = 1;
+    enemyHPC = 1000;
     // Add player game object
     const player = add([
         sprite("hero"),
@@ -721,15 +727,16 @@ scene("lvl1", ()=>{
     });
     player.onCollide("bullet", ()=>{
         destroy(player);
-        makeBackButton;
-        cash += 1000 / enemyHP;
+        makeBackButton();
+        if (enemyHP < 0) return;
+        cash += Math.floor(1000 / (enemyHP / 3));
     });
     enemy.onCollide("MyB", ()=>{
         enemyHP -= dmg;
         if (enemyHP <= 0) {
             destroy(enemy);
             cash += 2000;
-            makeBackButton;
+            makeBackButton();
         }
         healthbar.set();
     });
@@ -754,6 +761,7 @@ scene("lvl1", ()=>{
     }
 });
 scene("lvl2", ()=>{
+    canShot = 1;
     enemyHP = 2500;
     enemyHPC = enemyHP;
     Length = width() / enemyHP;
@@ -809,10 +817,14 @@ scene("lvl2", ()=>{
     });
     player.onCollide("bullet", ()=>{
         destroy(player);
+        makeBackButton();
     });
     enemy.onCollide("MyB", ()=>{
         enemyHP -= dmg;
-        if (enemyHP <= 0) destroy(enemy);
+        if (enemyHP <= 0) {
+            destroy(enemy);
+            makeBackButton();
+        }
         healthbar.set();
     });
     cashDisplay(cash);
@@ -835,6 +847,7 @@ scene("lvl2", ()=>{
     }
 });
 scene("Upgrade", ()=>{
+    cashDisplay(cash);
     add([
         rect(300, 300),
         color(WHITE),
@@ -860,7 +873,15 @@ scene("Upgrade", ()=>{
         state["idle"],
         "IncreaseHealth"
     ]);
-    onClick("MoreDMG", ()=>dmg += 10);
+    onClick("MoreDMG", ()=>{
+        if (cash >= priceDMG) {
+            cash -= priceDMG;
+            dmg += 10;
+            priceDMG = Math.ceil(priceDMG * 1.5);
+            destroyAll("cashDis");
+            cashDisplay(cash);
+        }
+    });
     healthUp.play("idle");
     bulletGraph.play("idle");
 });
@@ -969,7 +990,8 @@ on("out", "WallB", (m)=>{
 function cashDisplay(cash) {
     add([
         text("Cash: " + cash),
-        pos(0, 10)
+        pos(0, 10),
+        "cashDis"
     ]);
 }
 function makeBackButton() {

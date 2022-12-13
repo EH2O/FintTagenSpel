@@ -21,6 +21,7 @@ let enemyHPC = enemyHP;
 let Length = width()/enemyHP;
 let canShot = 1;
 let cash = 0;
+let priceDMG = 5;
 
 loadSprite("hero", hero)
 loadSprite("BUG", bulletGraphPlace, {
@@ -74,6 +75,7 @@ loadSprite("vil2", villan2, {
 })
 
 scene("start", () => {
+    cashDisplay(cash);
     add([
         rect(250,100),
         color(WHITE),
@@ -149,7 +151,10 @@ scene("LevelSelector", () => {
 
 })
 scene("lvl1", () => {
-
+    cashDisplay(cash);
+    enemyHP = 1000;
+    canShot = 1;
+    enemyHPC = 1000;
     
 // Add player game object
 const player = add([
@@ -211,7 +216,9 @@ const player = add([
     player.onCollide("bullet", () =>{
         destroy(player);
         makeBackButton();
-        cash += 1000/enemyHP;
+        if(enemyHP < 0)return;
+        cash += Math.floor(1000/(enemyHP/3));
+        
     })
     
     enemy.onCollide("MyB", () =>{
@@ -249,6 +256,7 @@ const player = add([
 
 })
 scene("lvl2", () => {
+    canShot = 1;
 
     enemyHP = 2500
     enemyHPC = enemyHP;
@@ -349,6 +357,7 @@ scene("lvl2", () => {
 
 })
 scene("Upgrade", () => {
+    cashDisplay(cash);
 
     add ([
         rect(300,300),
@@ -380,7 +389,14 @@ scene("Upgrade", () => {
         state["idle"],
         "IncreaseHealth"
     ])
-    onClick("MoreDMG", () => dmg += 10)
+    onClick("MoreDMG", () => {
+        if(cash >= priceDMG){
+        cash -= priceDMG;
+        dmg += 10;
+        priceDMG = Math.ceil(priceDMG*1.5)
+        destroyAll("cashDis");
+        cashDisplay(cash);
+    }});
     healthUp.play("idle")
     bulletGraph.play("idle")
 
@@ -541,6 +557,7 @@ function cashDisplay(cash){
     add ([
         text("Cash: " + cash),
         pos(0, 10),
+        "cashDis",
     ])
 }
 function makeBackButton(){
