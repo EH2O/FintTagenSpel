@@ -25,3 +25,6 @@ https://github.com/EH2O/FintTagenSpel
 
 
 Jag la till HP, healthbar, en första och andra attack för fienden, Gjorde så man kan sjukta, Overall väldigt bra lektion 🙂 
+
+50: 
+tis: Jag fixade många bugs och la till ett pengar system samt , Har lite bugfixes och läga till några powerups sedan har jag välidgt mycket kod jag inte använder på grund av att senar om jag vill kunna läga till flertals funktioner

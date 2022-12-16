@@ -548,7 +548,7 @@ const hero = "/test/man.png";
 const villan2 = "/test/skeleton.png";
 const villan = "/test/Pog.png";
 const bulletGraphPlace = "/test/bulletWS.png";
-const SPEED = 500;
+const SPEED = 400;
 const ENEMY_SPEED = 250;
 let dmg = 10;
 let time = 0;
@@ -560,6 +560,10 @@ let Length = width() / enemyHP;
 let canShot = 1;
 let cash = 0;
 let priceDMG = 5;
+let CPlayerHP = 10;
+let PlayerHP = 1;
+let priceHEALTH = 1;
+let timesWon = 1;
 loadSprite("hero", hero);
 loadSprite("BUG", bulletGraphPlace, {
     sliceX: 5,
@@ -607,6 +611,7 @@ loadSprite("vil2", villan2, {
     }
 });
 scene("start", ()=>{
+    stats(dmg, PlayerHP);
     cashDisplay(cash);
     add([
         rect(250, 100),
@@ -673,9 +678,12 @@ scene("LevelSelector", ()=>{
 });
 scene("lvl1", ()=>{
     cashDisplay(cash);
+    stats(dmg, PlayerHP);
     enemyHP = 1000;
     canShot = 1;
     enemyHPC = 1000;
+    length = width() / enemyHPC;
+    CPlayerHP = PlayerHP;
     // Add player game object
     const player = add([
         sprite("hero"),
@@ -718,24 +726,43 @@ scene("lvl1", ()=>{
             time = 0;
         }
         if (timeA >= 150 && enemyHP < enemyHPC / 2) {
-            //circleAt(10, enemy.pos);
+            circleAt(10, enemy.pos);
             fireworkAT(20, enemy.pos, dir);
             timeA = 0;
         }
+        if (timeA == 100) DeathAttack(30, enemy.pos);
         timeA += 1;
         time += 1;
     });
-    player.onCollide("bullet", ()=>{
-        destroy(player);
-        makeBackButton();
-        if (enemyHP < 0) return;
-        cash += Math.floor(1000 / (enemyHP / 3));
+    player.onCollide("bullet", (bulletHit)=>{
+        CPlayerHP -= 1;
+        destroyAll("stats");
+        stats(dmg, CPlayerHP);
+        destroy(bulletHit);
+        if (CPlayerHP <= 0) {
+            destroy(player);
+            makeBackButton();
+            if (enemyHP < 0) return;
+            cash += Math.floor(1000 / (enemyHP / 3));
+        }
     });
-    enemy.onCollide("MyB", ()=>{
+    player.onCollide("enemy", ()=>{
+        CPlayerHP -= 5;
+        destroyAll("stats");
+        stats(dmg, CPlayerHP);
+        if (CPlayerHP <= 0) {
+            destroy(player);
+            makeBackButton();
+            if (enemyHP < 0) return;
+            cash += Math.floor(70 / Math.ceil(enemyHP / 30));
+        }
+    });
+    enemy.onCollide("MyB", (MyBullet)=>{
         enemyHP -= dmg;
+        destroy(MyBullet);
         if (enemyHP <= 0) {
             destroy(enemy);
-            cash += 2000;
+            cash += 200;
             makeBackButton();
         }
         healthbar.set();
@@ -762,9 +789,12 @@ scene("lvl1", ()=>{
 });
 scene("lvl2", ()=>{
     canShot = 1;
+    CPlayerHP = PlayerHP;
     enemyHP = 2500;
     enemyHPC = enemyHP;
     Length = width() / enemyHP;
+    cashDisplay(cash);
+    stats(dmg, PlayerHP);
     const player = add([
         sprite("hero"),
         pos(100),
@@ -815,14 +845,35 @@ scene("lvl2", ()=>{
         timeA += 1;
         time += 1;
     });
-    player.onCollide("bullet", ()=>{
-        destroy(player);
-        makeBackButton();
+    player.onCollide("bullet", (bulletHit)=>{
+        CPlayerHP -= 1;
+        destroyAll("stats");
+        stats(dmg, CPlayerHP);
+        destroy(bulletHit);
+        if (CPlayerHP <= 0) {
+            destroy(player);
+            makeBackButton();
+            if (enemyHP < 0) return;
+            cash += Math.floor(1000 / (enemyHP / 3));
+        }
     });
-    enemy.onCollide("MyB", ()=>{
+    player.onCollide("enemy", ()=>{
+        CPlayerHP -= 5;
+        destroyAll("stats");
+        stats(dmg, CPlayerHP);
+        if (CPlayerHP <= 0) {
+            destroy(player);
+            makeBackButton();
+            if (enemyHP < 0) return;
+            cash += Math.floor(100 / Math.ceil(enemyHP / 30));
+        }
+    });
+    enemy.onCollide("MyB", (MyBullet)=>{
         enemyHP -= dmg;
+        destroy(MyBullet);
         if (enemyHP <= 0) {
             destroy(enemy);
+            cash += 500;
             makeBackButton();
         }
         healthbar.set();
@@ -857,6 +908,7 @@ scene("Upgrade", ()=>{
         origin("center"),
         outline(10, BLACK)
     ]);
+    stats(dmg, PlayerHP);
     const bulletGraph = add([
         sprite("BUG"),
         pos(500),
@@ -865,9 +917,13 @@ scene("Upgrade", ()=>{
         state["idle"]
     ]);
     makeBackButton();
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    dmgPrice(priceDMG);
+    DisplayHealthPrice(priceHEALTH);
     const healthUp = add([
         sprite("HealthPack"),
         pos(800, 450),
+        area(),
         origin("center"),
         scale(10),
         state["idle"],
@@ -880,6 +936,21 @@ scene("Upgrade", ()=>{
             priceDMG = Math.ceil(priceDMG * 1.5);
             destroyAll("cashDis");
             cashDisplay(cash);
+            dmgPrice(priceDMG);
+            DisplayHealthPrice(priceHEALTH);
+            stats(dmg, PlayerHP);
+        }
+    });
+    onClick("IncreaseHealth", ()=>{
+        if (cash >= priceHEALTH) {
+            cash -= priceHEALTH;
+            PlayerHP += 1;
+            priceHEALTH = Math.ceil(priceHEALTH * 2);
+            destroyAll("cashDis");
+            cashDisplay(cash);
+            dmgPrice(priceDMG);
+            DisplayHealthPrice(priceHEALTH);
+            stats(dmg, PlayerHP);
         }
     });
     healthUp.play("idle");
@@ -937,7 +1008,8 @@ function circleAt(x, Position) {
         color(GREEN),
         handleout(),
         "bullet",
-        "WallB"
+        "WallB",
+        "DeathAT"
     ]);
 }
 function fireworkAT(x, test, dir) {
@@ -954,6 +1026,14 @@ function fireworkAT(x, test, dir) {
     wait(1, ()=>{
         circleAt(x, firework.pos);
         destroy(firework);
+    });
+}
+function DeathAttack(x, position) {
+    circleAt(x, position);
+    wait(1, ()=>{
+        every("DeathAT", (test)=>{
+            circleAt(x, test.pos);
+        });
     });
 }
 //Needs a enemy.pos and dir towards the player
@@ -1004,6 +1084,30 @@ function makeBackButton() {
         text("Back")
     ]);
     onClick("Back", ()=>go("start"));
+}
+function dmgPrice(dmgPrice) {
+    add([
+        text("Cost: " + dmgPrice),
+        pos(300, 250),
+        "cashDis",
+        scale(0.7)
+    ]);
+}
+function DisplayHealthPrice(healthPrice) {
+    add([
+        text("Cost: " + healthPrice),
+        pos(640, 250),
+        "cashDis",
+        scale(0.7)
+    ]);
+}
+function stats(dmg, hp) {
+    add([
+        pos(10, height() - 50),
+        text("dmg: " + dmg + " HP: " + hp),
+        "stats",
+        scale(0.6)
+    ]);
 }
 go("start");
 
