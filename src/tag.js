@@ -25,6 +25,7 @@ let priceDMG = 5;
 let CPlayerHP = 10;
 let PlayerHP = 1; 
 let priceHEALTH = 1;
+let timeD = 1;
 let timesWon = 1;
 loadSprite("hero", hero)
 loadSprite("BUG", bulletGraphPlace, {
@@ -213,12 +214,13 @@ const player = add([
         fireworkAT(20, enemy.pos, dir)
             timeA = 0;
         }
-        if(timeA == 100){
+        if(timeA >= 200 && enemyHP < enemyHPC/5){
             DeathAttack(30, enemy.pos);
         }
   
         timeA += 1;
         time += 1;
+        timeD += 1;
     })
 
 
